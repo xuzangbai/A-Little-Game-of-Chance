@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11161c">
+  <title>概率小游戏</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="app.js"></script>
+  <script defer src="crocodile.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="masthead">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"><i></i></span>
+        <h1>概率小游戏</h1>
+      </div>
+      <nav class="game-switcher" aria-label="切换游戏">
+        <button type="button" data-game="revolver" aria-controls="revolver-game" aria-pressed="true">左轮模拟器</button>
+        <button type="button" data-game="crocodile" aria-controls="crocodile-game" aria-pressed="false">鳄鱼牙齿</button>
+      </nav>
+      <div class="header-actions" id="revolver-actions">
+        <button class="button button-subtle" id="show-results" type="button" aria-controls="results" aria-expanded="false" hidden>查看结果</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="workspace" id="revolver-game">
+        <section class="card model-card" aria-labelledby="model-title">
+          <div class="card-heading">
+            <h2 id="model-title">弹巢</h2>
+            <label class="cover-control">
+              <input id="cover" type="checkbox" role="switch" autocomplete="off">
+              <span class="switch" aria-hidden="true"></span>
+              <span>遮挡子弹</span>
+            </label>
+          </div>
+
+          <div class="model-view">
+            <div class="model-marker">当前孔位 <strong id="active-hole">1</strong></div>
+            <canvas id="cylinder" width="560" height="450" tabindex="0" role="button"
+              aria-label="弹巢，可拖动，按空格随机转动" aria-describedby="drag-hint"></canvas>
+            <p id="drag-hint">拖动跟手，松手后惯性转动</p>
+            <div class="legend" aria-hidden="true">
+              <span><i class="chip chip-loaded"></i>实弹</span>
+              <span><i class="chip chip-empty"></i>空孔</span>
+            </div>
+          </div>
+
+          <div class="manual-controls">
+            <div class="round-info">
+              <span>本轮击发</span>
+              <strong id="shot-progress">0 / 1</strong>
+              <small id="round-status">待击发</small>
+            </div>
+            <button class="button button-secondary" id="spin" type="button">
+              <span class="spin-icon" aria-hidden="true">⟳</span>随机转动
+            </button>
+            <button class="button button-primary" id="fire" type="button">击发</button>
+          </div>
+        </section>
+
+        <aside class="card settings-card" aria-label="模拟和批量设置">
+          <section class="settings-section" aria-labelledby="settings-title">
+            <h2 id="settings-title">模拟设置</h2>
+            <div class="field-grid">
+              <label class="field" for="chamber-count">总孔数
+                <input id="chamber-count" type="number" inputmode="numeric" min="1" max="120" step="1" value="6">
+              </label>
+              <label class="field" for="bullet-count">装弹数
+                <input id="bullet-count" type="number" inputmode="numeric" min="0" max="6" step="1" value="1">
+              </label>
+              <label class="field field-wide" for="shot-count">每轮击发次数
+                <input id="shot-count" type="text" inputmode="numeric" value="1" autocomplete="off" spellcheck="false">
+              </label>
+            </div>
+            <p class="field-error" id="settings-error" role="alert" hidden></p>
+            <button class="button button-secondary reload-button" id="reload" type="button">重新装填</button>
+          </section>
+
+          <section class="settings-section batch-section" aria-labelledby="batch-title">
+            <h2 id="batch-title">批量测试</h2>
+            <div class="batch-controls">
+              <label class="field" for="trial-count">测试轮数
+                <input id="trial-count" type="text" inputmode="numeric" value="1000" autocomplete="off"
+                  spellcheck="false" aria-describedby="batch-hint">
+              </label>
+              <button class="button button-primary" id="batch" type="button">开始</button>
+            </div>
+            <p class="field-hint" id="batch-hint">留空持续测试，可随时停止</p>
+            <p class="field-error" id="batch-error" role="alert" hidden></p>
+
+            <div class="batch-metrics">
+              <div><strong id="completed-count">0</strong><span>已完成</span></div>
+              <div><strong id="death-count">0</strong><span>命中实弹</span></div>
+              <div><strong id="death-rate">—</strong><span>命中率</span></div>
+            </div>
+            <div class="progress-track" id="batch-progress" aria-hidden="true"><div></div></div>
+            <p class="batch-status" id="batch-status" role="status">待开始</p>
+          </section>
+        </aside>
+      </div>
+
+      <div class="workspace" id="crocodile-game" hidden>
+        <section class="card crocodile-card" aria-labelledby="crocodile-title">
+          <div class="card-heading"><h2 id="crocodile-title">鳄鱼牙齿</h2></div>
+          <div class="crocodile-stage">
+            <div class="crocodile" id="crocodile">
+              <div class="croc-shadow" aria-hidden="true"></div>
+              <div class="croc-head" aria-hidden="true"></div>
+              <div class="croc-mouth" aria-hidden="true"><span class="croc-tongue"></span></div>
+              <div class="croc-jaw" aria-hidden="true"></div>
+              <div class="croc-teeth" id="croc-teeth" role="group" aria-label="可按的牙齿"></div>
+              <div class="croc-upper" aria-hidden="true">
+                <div class="croc-eye croc-eye-left"></div>
+                <div class="croc-eye croc-eye-right"></div>
+                <div class="croc-fangs"><span></span><span></span><span></span><span></span></div>
+                <div class="croc-snout"><span></span><span></span></div>
+              </div>
+            </div>
+            <p class="crocodile-hint">轮流按牙，按中机关牙的人输</p>
+          </div>
+        </section>
+
+        <aside class="card settings-card" aria-label="鳄鱼游戏状态和设置">
+          <section class="settings-section" aria-labelledby="croc-round-title">
+            <h2 id="croc-round-title">本轮</h2>
+            <div class="croc-status" id="croc-status" role="status" aria-atomic="true">
+              <strong id="croc-turn">轮到玩家 1</strong>
+              <span id="croc-outcome" hidden></span>
+            </div>
+            <div class="croc-progress"><span>已按牙齿</span><strong id="croc-progress">0 / 10</strong></div>
+            <button class="button button-primary reload-button" id="croc-restart" type="button">新一轮</button>
+          </section>
+          <section class="settings-section batch-section" aria-labelledby="croc-settings-title">
+            <h2 id="croc-settings-title">游戏设置</h2>
+            <div class="field-grid">
+              <label class="field field-wide" for="croc-player-count">玩家人数
+                <select id="croc-player-count" autocomplete="off">
+                  <option value="2" selected>2 位玩家</option>
+                  <option value="3">3 位玩家</option>
+                  <option value="4">4 位玩家</option>
+                  <option value="5">5 位玩家</option>
+                  <option value="6">6 位玩家</option>
+                </select>
+              </label>
+              <label class="field" for="croc-tooth-count">总牙数
+                <select id="croc-tooth-count" autocomplete="off" aria-describedby="croc-count-hint"></select>
+              </label>
+              <label class="field" for="croc-trap-count">机关牙数
+                <select id="croc-trap-count" autocomplete="off" aria-describedby="croc-count-hint"></select>
+              </label>
+            </div>
+            <p class="field-hint" id="croc-count-hint">总牙数 2–12 颗，至少留 1 颗普通牙。</p>
+          </section>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <section class="result-panel" id="results" aria-labelledby="results-title" hidden>
+    <div class="result-heading">
+      <h2 id="results-title">结果记录</h2>
+      <button class="close-button" id="hide-results" type="button" aria-label="收起结果">×</button>
+    </div>
+    <div class="result-views" role="group" aria-label="记录类型">
+      <button id="show-manual-log" type="button" aria-controls="manual-log" aria-pressed="true">手动记录</button>
+      <button id="show-batch-log" type="button" aria-controls="batch-log" aria-pressed="false">批量记录</button>
+    </div>
+    <div class="manual-result" id="manual-result" role="status" aria-atomic="true" hidden>
+      <span class="outcome-symbol" id="outcome-symbol" aria-hidden="true"></span>
+      <div>
+        <strong id="result-message"></strong>
+        <span id="result-detail"></span>
+      </div>
+    </div>
+    <ol class="result-log" id="manual-log" tabindex="0" aria-label="手动操作记录"></ol>
+    <ol class="result-log" id="batch-log" tabindex="0" aria-label="正在滚动的逐轮测试结果" hidden></ol>
+    <p id="empty-records" class="empty-records" hidden>暂无记录</p>
+  </section>
+</body>
+</html>
